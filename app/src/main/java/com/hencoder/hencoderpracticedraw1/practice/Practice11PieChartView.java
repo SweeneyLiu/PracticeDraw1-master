@@ -20,13 +20,16 @@ public class Practice11PieChartView extends View {
 
     private static final String TAG = "Practice11PieChartView";
     //circle
-    private RectF mOvalShape;
-    private RectF mOvalShapeMax;
+    private RectF mInnerOvalShape;//内圆弧外轮廓矩形区域。
+    private RectF mOutterOvalShape;//外圆的外轮廓矩形区域。
+
+    private Rect mRect = new Rect();
+
     //circle attr
-    private int mCircleLeft = 100;
-    private int mCircleTop = 50;
-    private int mCircleRadius = 200;
-    private int[] degreeRange = {0, 2, 7, 7, 30, 129, 120, 58};
+    private int mCircleLeft = 100;//左上角的横坐标
+    private int mCircleTop = 50;//左上角的纵坐标
+    private int mCircleRadius = 200;//圆的半径
+    private int[] mCircleDegreeRange = {0, 2, 7, 7, 30, 129, 120, 58};//圆的各个角度的范围
 
     //paint
     private Paint mPaintPurple = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -36,20 +39,20 @@ public class Practice11PieChartView extends View {
     private Paint mPaintRed = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mPaintYellow = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    //paints集合
-    private List<Paint> mPaints = new ArrayList<>();
-
     //line
     private Paint mPaintPath = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private List<Path> mPaths = new ArrayList<>();
-
-    private List<Point> mPoints = new ArrayList<>();
-
     //text
     private Paint mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private String[] mStrings = {"Froyo", "Gingerbread", "Ice Cream Sandwich", "Jelly Bean", "KitKat", "Lollipop", "Marshmallow"};
 
-    private Rect mRect = new Rect();
+    //paints集合
+    private List<Paint> mPaints = new ArrayList<>();
+    //paths集合
+    private List<Path> mPaths = new ArrayList<>();
+    //points集合
+    private List<Point> mPoints = new ArrayList<>();
+
+    //文本内容
+    private String[] mStrings = {"Froyo", "Gingerbread", "Ice Cream Sandwich", "Jelly Bean", "KitKat", "Lollipop", "Marshmallow"};
 
 
 
@@ -72,26 +75,56 @@ public class Practice11PieChartView extends View {
 //        综合练习
 //        练习内容：使用各种 Canvas.drawXXX() 方法画饼图
 
+        //初始化圆
         initCircle();
+        //绘制圆
+        drawPie(canvas);
+        //初始化连线及文本
+        initLineAndText();
+        //绘制连线及文本
+        drawLineAndText(canvas);
+    }
 
+    /**
+     * 绘制连线及文本
+     * @param canvas
+     */
+    private void drawLineAndText(Canvas canvas) {
+        for (int i = 0; i < 7; i++) {
+            canvas.drawPath(mPaths.get(i), mPaintPath);
+            if (i == 4 || i == 5) {
+                mPaintText.getTextBounds(mStrings[i], 0, mStrings[i].length(), mRect);
+                canvas.drawText(mStrings[i], mPoints.get(i).x - mRect.width() - 5, mPoints.get(i).y, mPaintText);
+                continue;
+            }
+            canvas.drawText(mStrings[i], mPoints.get(i).x, mPoints.get(i).y, mPaintText);
+        }
+    }
+
+    /**
+     * 绘制文本参数
+     */
+    private void initLineAndText() {
         mPaintPath.setColor(Color.argb(120, 232, 232, 232));
         mPaintPath.setStyle(Paint.Style.STROKE);
         mPaintPath.setStrokeWidth(1.5f);
 
         mPaintText.setColor(Color.WHITE);
         mPaintText.setTextSize(15);
-        int[] degree = new int[7];
+
+
+        int[] degree = new int[7];//获取7块区域的角度
         int start = -1;
         for (int i = 0; i < 7; i++) {
-            start += degreeRange[i] + 1;
-            degree[i] = degreeRange[i + 1] / 2 + start;
+            start += mCircleDegreeRange[i] + 1;
+            degree[i] = mCircleDegreeRange[i + 1] / 2 + start;
         }
 
+        //7条划线的路径（path）及point的坐标
         int left = 0;
         for (int i = 0; i < 7; i++) {
             Path path = new Path();
             Point p = getPoint(degree[i]);
-
             path.moveTo(p.x, p.y);
 
             if (i == 0) {
@@ -138,24 +171,18 @@ public class Practice11PieChartView extends View {
             mPaths.add(path);
             mPoints.add(p);
         }
-
-        pie(canvas);
-
-        for (int i = 0; i < 7; i++) {
-            canvas.drawPath(mPaths.get(i), mPaintPath);
-            if (i == 4 || i == 5) {
-                mPaintText.getTextBounds(mStrings[i], 0, mStrings[i].length(), mRect);
-                canvas.drawText(mStrings[i], mPoints.get(i).x - mRect.width() - 5, mPoints.get(i).y, mPaintText);
-                continue;
-            }
-            canvas.drawText(mStrings[i], mPoints.get(i).x, mPoints.get(i).y, mPaintText);
-        }
-
     }
 
+    /**
+     * 初始化绘制圆参数
+     */
     private void initCircle() {
+
+        mInnerOvalShape = new RectF(100, 50, 500, 450);//内圆，左上角坐标（100,50），右下角（500,450），圆半径为200
+        mOutterOvalShape = new RectF(90, 40, 490, 440);//外圆，左上角坐标（90,40），右下角（490,440），圆半径为200
+
+        //设置paint的颜色
         mPaints.add(mPaint);
-        mOvalShape = new RectF(mCircleLeft, mCircleTop, 500, 450);
         mPaintPurple.setColor(Color.argb(190, 115, 15, 189));
         mPaints.add(mPaintPurple);
         mPaintGray.setColor(Color.argb(190, 144, 138, 143));
@@ -169,29 +196,32 @@ public class Practice11PieChartView extends View {
         mPaintYellow.setColor(Color.argb(190, 228, 227, 17));
         mPaints.add(mPaintYellow);
 
-        mOvalShapeMax = new RectF(90, 40, 490, 440);
     }
 
-
-    private void pie(Canvas canvas) {
+    private void drawPie(Canvas canvas) {
         int start = -1;
 
         for (int i = 0; i < 7; i ++) {
+            //绘制第6部分，需要使用外圆
             if (i == 5) {
-                canvas.drawArc(mOvalShapeMax, start += degreeRange[i] + 1, degreeRange[i + 1], true, mPaints.get(i));
+                canvas.drawArc(mOutterOvalShape, start += mCircleDegreeRange[i] + 1, mCircleDegreeRange[i + 1], true, mPaints.get(i));
                 continue;
             }
-            canvas.drawArc(mOvalShape, start += degreeRange[i] + 1, degreeRange[i + 1], true, mPaints.get(i));
-            Log.i(TAG, "pie: start :" + start + " degreeRange:" + degreeRange[i + 1]);
+            canvas.drawArc(mInnerOvalShape, start += mCircleDegreeRange[i] + 1, mCircleDegreeRange[i + 1], true, mPaints.get(i));
+            Log.i(TAG, "pie: start :" + start + " degreeRange:" + mCircleDegreeRange[i + 1]);
         }
     }
 
+
+    /**
+     * 获取圆上划线点的坐标
+     * @param degree
+     * @return
+     */
     private Point getPoint(int degree) {
-        Log.i(TAG, "getPoint: " + degree);
         Point point = new Point();
-        int r = mCircleRadius;
-        point.x = (int) (mCircleLeft + r + r * Math.cos(degree * Math.PI / 180));
-        point.y = (int) (mCircleTop + r + r * Math.sin(degree * Math.PI / 180));
+        point.x = (int) (mCircleLeft + mCircleRadius + mCircleRadius * Math.cos(degree * Math.PI / 180));
+        point.y = (int) (mCircleTop + mCircleRadius + mCircleRadius * Math.sin(degree * Math.PI / 180));
         return point;
     }
 
