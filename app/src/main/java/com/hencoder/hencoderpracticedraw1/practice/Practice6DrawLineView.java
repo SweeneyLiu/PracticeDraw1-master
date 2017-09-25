@@ -28,6 +28,7 @@ public class Practice6DrawLineView extends View {
 
 //        练习内容：使用 canvas.drawLine() 方法画直线
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStrokeWidth(8);
         canvas.drawLine(50,50,200,200,paint);
     }
 }
